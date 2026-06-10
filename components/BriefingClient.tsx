@@ -60,9 +60,9 @@ export default function BriefingClient({ briefings, todayDate }: Props) {
                   </span>
                 </div>
 
-                {briefing.headlines.map((h) => (
+                {briefing.headlines.map((h, i) => (
                   <HeadlineCard
-                    key={h.url}
+                    key={`${i}-${h.url}`}
                     headline={h}
                     briefingDate={selectedDate}
                     isPastDay={isPastDay}

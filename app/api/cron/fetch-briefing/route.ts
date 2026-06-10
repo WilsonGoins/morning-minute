@@ -21,7 +21,7 @@ async function runPipeline(date: string, db: ReturnType<typeof getServiceClient>
 
   // 3. Upsert to daily_briefings
   const { error } = await db.from("daily_briefings").upsert(
-    { date, market_data, headlines, macro_events, overnight_summary },
+    { date, market_data, headlines, macro_events, overnight_summary, created_at: new Date().toISOString() },
     { onConflict: "date" }
   )
   if (error) throw new Error(`Supabase upsert failed: ${error.message}`)

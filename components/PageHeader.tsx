@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import DateNav from "@/components/DateNav"
 
 interface Props {
@@ -35,6 +36,100 @@ function formatFullDate(dateStr: string): string {
   })
 }
 
+type RefreshState = "checking" | "available" | "loading" | "success" | "error" | "cooldown"
+
+function formatCooldown(seconds: number): string {
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  if (h > 0) return `${h}h ${m}m`
+  return `${m}m`
+}
+
+function RefreshButton() {
+  const [state, setState] = useState<RefreshState>("checking")
+  const [ttl, setTtl] = useState(0)
+  const [errMsg, setErrMsg] = useState("")
+
+  useEffect(() => {
+    fetch("/api/refresh-briefing")
+      .then((r) => r.json())
+      .then((d: { available: boolean; ttl: number }) => {
+        if (d.available) {
+          setState("available")
+        } else {
+          setTtl(d.ttl)
+          setState("cooldown")
+        }
+      })
+      .catch(() => setState("available"))
+  }, [])
+
+  async function handleRefresh() {
+    setState("loading")
+    try {
+      const res = await fetch("/api/refresh-briefing", { method: "POST" })
+      const data = await res.json() as { error?: string; ttl?: number; ok?: boolean }
+      if (res.status === 429 && data.ttl) {
+        setTtl(data.ttl)
+        setState("cooldown")
+      } else if (!res.ok) {
+        setErrMsg(data.error ?? "Something went wrong")
+        setState("error")
+      } else {
+        setState("success")
+        setTimeout(() => window.location.reload(), 1500)
+      }
+    } catch {
+      setErrMsg("Network error")
+      setState("error")
+    }
+  }
+
+  if (state === "checking") return null
+
+  if (state === "cooldown") {
+    return (
+      <span className="text-[11px]" style={{ color: "var(--wf-ink-3)" }}>
+        Next refresh in {formatCooldown(ttl)}
+      </span>
+    )
+  }
+
+  if (state === "success") {
+    return (
+      <span className="text-[11px]" style={{ color: "var(--wf-up)" }}>
+        ✓ Refreshed — reloading…
+      </span>
+    )
+  }
+
+  if (state === "loading") {
+    return (
+      <span className="text-[11px]" style={{ color: "var(--wf-ink-3)" }}>
+        Refreshing…
+      </span>
+    )
+  }
+
+  if (state === "error") {
+    return (
+      <button onClick={handleRefresh} className="text-[11px]" style={{ color: "var(--wf-down)" }}>
+        ✕ {errMsg} — retry?
+      </button>
+    )
+  }
+
+  return (
+    <button
+      onClick={handleRefresh}
+      className="text-[11px] rounded-md border px-2 py-1 transition-colors hover:bg-[#f0f0f0]"
+      style={{ borderColor: "var(--wf-line)", color: "var(--wf-ink-2)", background: "var(--wf-card)" }}
+    >
+      ↻ Refresh data
+    </button>
+  )
+}
+
 export default function PageHeader({ createdAt, selectedDate, onSelectDate, isPastDay }: Props) {
   return (
     <header
@@ -54,7 +149,10 @@ export default function PageHeader({ createdAt, selectedDate, onSelectDate, isPa
               Data as of {formatTimestamp(createdAt)}
             </p>
           </div>
-          <DateNav selectedDate={selectedDate} onSelectDate={onSelectDate} />
+          <div className="flex flex-col items-end gap-1.5">
+            <DateNav selectedDate={selectedDate} onSelectDate={onSelectDate} />
+            {!isPastDay && <RefreshButton />}
+          </div>
         </div>
 
         {isPastDay && (

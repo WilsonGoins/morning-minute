@@ -41,6 +41,7 @@ export default function BriefingClient({ briefings, todayDate }: Props) {
                   market_data={briefing.market_data}
                   macro_events={briefing.macro_events}
                   compact={false}
+                  date={selectedDate}
                 />
               </section>
 

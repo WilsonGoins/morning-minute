@@ -45,11 +45,7 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (cached) {
-    return NextResponse.json({
-      talking_points: cached.talking_points,
-      claim_count: cached.claim_count,
-      cached: true,
-    })
+    return NextResponse.json({ talking_points: cached.talking_points, cached: true })
   }
 
   // Generate fresh
@@ -66,5 +62,5 @@ export async function POST(req: NextRequest) {
     { onConflict: "article_url_hash,briefing_date" }
   )
 
-  return NextResponse.json({ talking_points, claim_count: 0, cached: false })
+  return NextResponse.json({ talking_points, cached: false })
 }

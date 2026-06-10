@@ -3,14 +3,13 @@
 import { useState } from "react"
 import type { Headline, TalkingPoint } from "@/types"
 
-
-interface Props {
-  headline: Headline
-  briefingDate: string
-  isPastDay: boolean
-  initialClaimCount?: number
-  initialTalkingPoints?: TalkingPoint[] | null
-}
+const PAID_SOURCES = new Set([
+  "Financial Times",
+  "Bloomberg",
+  "WSJ",
+  "Wall Street Journal",
+  "Barron's",
+])
 
 function normalizeUrl(url: string | undefined): string | null {
   if (!url) return null
@@ -18,21 +17,24 @@ function normalizeUrl(url: string | undefined): string | null {
   return `https://${url}`
 }
 
+interface Props {
+  headline: Headline
+  briefingDate: string
+  isPastDay: boolean
+  initialTalkingPoints?: TalkingPoint[] | null
+}
+
 export default function HeadlineCard({
   headline,
   briefingDate,
   isPastDay,
-  initialClaimCount = 0,
   initialTalkingPoints = null,
 }: Props) {
   const [talkingPoints, setTalkingPoints] = useState<TalkingPoint[] | null>(initialTalkingPoints)
   const [isOpen, setIsOpen] = useState(!!initialTalkingPoints)
   const [isFetching, setIsFetching] = useState(false)
   const [isCached, setIsCached] = useState(false)
-  const [claimCount, setClaimCount] = useState(initialClaimCount)
-
   const [error, setError] = useState<string | null>(null)
-  const [hasClaimed, setHasClaimed] = useState(false)
 
   const articleUrl = normalizeUrl(headline.url)
   const hasTalkingPoints = !!talkingPoints
@@ -65,29 +67,11 @@ export default function HeadlineCard({
       const data = await res.json()
       setTalkingPoints(data.talking_points)
       setIsCached(data.cached)
-      setClaimCount(data.claim_count ?? 0)
       setIsOpen(true)
     } catch {
       setError("Failed to load talking points. Please try again.")
     } finally {
       setIsFetching(false)
-    }
-  }
-
-  async function handleClaim() {
-    if (hasClaimed || isPastDay) return
-
-    try {
-      const res = await fetch("/api/claim", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: headline.url, briefing_date: briefingDate }),
-      })
-      const data = await res.json()
-      setClaimCount(data.claim_count ?? claimCount + 1)
-      setHasClaimed(true)
-    } catch {
-      // Silently fail — claim is best-effort
     }
   }
 
@@ -99,44 +83,26 @@ export default function HeadlineCard({
       style={{ background: "var(--wf-card)", borderColor: "var(--wf-line)" }}
     >
       {/* Meta row */}
-      <div className="flex items-center justify-between mb-1.5">
-        <div className="flex items-center gap-2">
-          <span className="eyebrow">{headline.source}</span>
-          <span className="text-[11px]" style={{ color: "var(--wf-ink-3)" }}>·</span>
-          <span className="text-[11px]" style={{ color: "var(--wf-ink-3)" }}>{headline.published_at}</span>
-        </div>
-
-        {isPastDay ? (
-          claimCount > 0 && (
+      <div className="flex items-center gap-2 mb-1.5">
+        <span className="eyebrow">{headline.source}</span>
+        {PAID_SOURCES.has(headline.source) && (
+          <span className="relative group">
             <span
-              className="rounded-full border px-2 py-0.5 text-[11px] font-semibold"
-              style={{ borderColor: "var(--wf-line)", color: "var(--wf-ink-3)" }}
+              className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full text-[9px] font-bold cursor-help select-none"
+              style={{ background: "var(--wf-line)", color: "var(--wf-ink-3)" }}
             >
-              🙋 Claimed{claimCount > 1 ? ` · ${claimCount}` : ""}
+              $
             </span>
-          )
-        ) : hasClaimed ? (
-          <span
-            className="rounded-full border px-2 py-0.5 text-[11px] font-semibold"
-            style={{ borderColor: "var(--wf-line)", color: "var(--wf-up)" }}
-          >
-            🙋 Claimed{claimCount > 1 ? ` · ${claimCount}` : ""}
+            <span
+              className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 w-52 rounded-[6px] px-2 py-1.5 text-[11px] leading-snug text-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-20"
+              style={{ background: "var(--wf-ink)", color: "var(--wf-card)" }}
+            >
+              Paid source — article may be paywalled. Talking points are generated from the headline and summary only.
+            </span>
           </span>
-        ) : (
-          <button
-            onClick={handleClaim}
-            disabled={!hasTalkingPoints}
-            className="rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-opacity"
-            style={{
-              borderColor: "var(--wf-line)",
-              color: hasTalkingPoints ? "var(--wf-ink-2)" : "var(--wf-ink-3)",
-              opacity: hasTalkingPoints ? 1 : 0.6,
-              cursor: hasTalkingPoints ? "pointer" : "default",
-            }}
-          >
-            🙋 {hasTalkingPoints ? "Claim this story" : "Claim · locked"}
-          </button>
         )}
+        <span className="text-[11px]" style={{ color: "var(--wf-ink-3)" }}>·</span>
+        <span className="text-[11px]" style={{ color: "var(--wf-ink-3)" }}>{headline.published_at}</span>
       </div>
 
       {/* Headline title */}
@@ -186,12 +152,6 @@ export default function HeadlineCard({
               </p>
             </div>
           ))}
-
-          {hasClaimed && (
-            <p className="text-[11px] mt-2" style={{ color: "var(--wf-ink-3)" }}>
-              You claimed this story
-            </p>
-          )}
         </div>
       )}
 
@@ -216,7 +176,7 @@ export default function HeadlineCard({
         ) : (
           <button
             onClick={() => setIsOpen((o) => !o)}
-            className="rounded-[7px] border px-2.5 py-1 text-[12px] font-medium"
+            className="rounded-[7px] border px-2.5 py-1 text-[12px] font-medium cursor-pointer"
             style={{ borderColor: "var(--wf-line)", color: "var(--wf-ink-2)", background: "var(--wf-card)" }}
           >
             {isOpen ? "Hide talking points ▴" : "View talking points ▾"}

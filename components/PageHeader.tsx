@@ -40,7 +40,7 @@ export default function PageHeader({ createdAt, selectedDate, onSelectDate, isPa
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-base font-bold leading-tight" style={{ color: "var(--wf-ink)" }}>
-              Morning Briefing <span className="font-normal" style={{ color: "var(--wf-ink-3)" }}></span>
+              Morning Minute <span className="font-normal" style={{ color: "var(--wf-ink-3)" }}></span>
             </h1>
             <p className="text-[13px]" style={{ color: "var(--wf-ink-2)" }}>
               {formatFullDate(selectedDate)}

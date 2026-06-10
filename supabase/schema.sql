@@ -1,4 +1,4 @@
--- Morning Briefing — Supabase Schema
+-- Morning Minute — Supabase Schema
 -- Run this in the Supabase SQL editor to initialize the database.
 
 create extension if not exists "uuid-ossp";

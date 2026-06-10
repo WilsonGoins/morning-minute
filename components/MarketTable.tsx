@@ -35,6 +35,7 @@ interface Props {
   market_data: MarketTicker[]
   macro_events: MacroEvent[]
   compact?: boolean
+  date?: string
 }
 
 function MoveCell({ ticker }: { ticker: MarketTicker }) {
@@ -69,7 +70,10 @@ function TickerRow({ ticker, subLabel }: { ticker: MarketTicker; subLabel?: stri
   )
 }
 
-export default function MarketTable({ market_data, macro_events, compact = false }: Props) {
+export default function MarketTable({ market_data, macro_events, compact = false, date }: Props) {
+  const dateLabel = date
+    ? (() => { const [y, m, d] = date.split("-").map(Number); return `${m}/${d}` })()
+    : null
   const [expanded, setExpanded] = useState(false)
 
   const byLabel: Record<string, MarketTicker> = {}
@@ -148,7 +152,7 @@ export default function MarketTable({ market_data, macro_events, compact = false
       {/* Macro Events */}
       {macro_events.length > 0 && (
         <div className="mt-4">
-          <div className="eyebrow mb-2">Macro Events Today</div>
+          <div className="eyebrow mb-2">Macro Events Today{dateLabel ? ` (${dateLabel})` : ""}</div>
           <div className="flex flex-wrap gap-2">
             {macro_events.map((ev) => (
               <span

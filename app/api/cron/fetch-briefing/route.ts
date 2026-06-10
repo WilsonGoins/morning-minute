@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServiceClient } from "@/lib/supabase"
-import { fetchMarketData } from "@/lib/twelve-data"
+import { fetchMarketData } from "@/lib/market-data"
 import { fetchDailyBriefing } from "@/lib/anthropic"
 import { toDateString, getLastNWorkingDays } from "@/lib/working-days"
 

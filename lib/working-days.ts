@@ -20,7 +20,7 @@ export function isWorkingDay(date: Date): boolean {
 }
 
 export function toDateString(date: Date): string {
-  return date.toISOString().split("T")[0]
+  return date.toLocaleDateString("en-CA", { timeZone: "America/New_York" })
 }
 
 export function formatDateLabel(date: Date): string {

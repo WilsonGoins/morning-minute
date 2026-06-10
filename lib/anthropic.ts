@@ -18,9 +18,33 @@ export async function fetchDailyBriefing(): Promise<BriefingContent> {
     timeZone: "America/New_York",
   })
 
-  const prompt = `You are a financial morning briefing assistant for the Hawks & Doves intern cohort. Today is ${today} EST.
+  // Step 1: Use web search to gather raw news information
+  const searchPrompt = `You are a financial morning briefing assistant. Today is ${today} EST.
 
-Search the web and return a JSON object with this exact structure:
+Search the web and gather:
+1. The top 5-7 financial news headlines from CNBC, Financial Times, WSJ, Bloomberg, and Barron's published in the last 12 hours. Focus on market-moving news: central bank decisions, economic data, earnings, geopolitical events.
+2. Any major macro events scheduled for TODAY only: Fed/ECB/BoJ decisions, Non-farm payrolls, CPI, PCE, unemployment data. If none, note that.
+3. What happened overnight: Asian markets, European open, US pre-market activity.
+
+For each headline include: exact title, brief summary, source name, URL, and approximate publish time.`
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const searchResponse = await client.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 4096,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 5 } as any],
+    messages: [{ role: "user", content: searchPrompt }],
+  })
+
+  const searchText = searchResponse.content
+    .filter((b): b is Anthropic.TextBlock => b.type === "text")
+    .map((b) => b.text)
+    .join("\n")
+
+  // Step 2: Format the gathered information as strict JSON
+  const formatPrompt = `Convert the following financial news summary into a JSON object with EXACTLY this structure. Return ONLY valid JSON — no markdown, no explanation, no prose.
+
 {
   "headlines": [
     {
@@ -37,32 +61,24 @@ Search the web and return a JSON object with this exact structure:
   "overnight_summary": "2-3 sentence narrative of overnight and pre-market activity"
 }
 
-Instructions:
-- Find the top 5-7 financial news headlines from CNBC, Financial Times, WSJ, Bloomberg, and Barron's published in the last 12 hours
-- Focus on market-moving news: central bank decisions, economic data, earnings, geopolitical events affecting markets
-- For macro_events, list only: Fed/ECB/BoJ decisions, Non-farm payrolls, unemployment, CPI, PCE scheduled for TODAY
-- If no major macro events today, return an empty array
-- The overnight_summary should cover: what happened in Asian markets, European open, US pre-market
-- Return ONLY valid JSON, no markdown, no explanation`
+Rules:
+- Include 5-7 headlines
+- macro_events should only include events scheduled for today; use empty array [] if none
+- overnight_summary must cover Asian markets, European open, and US pre-market
 
-  const response = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
+News summary to convert:
+${searchText}`
+
+  const formatResponse = await client.messages.create({
+    model: "claude-sonnet-4-6",
     max_tokens: 4096,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 5 } as any],
-    messages: [{ role: "user", content: prompt }],
+    messages: [{ role: "user", content: formatPrompt }],
   })
 
-  let jsonText = ""
-  for (const block of response.content) {
-    if (block.type === "text") {
-      jsonText = block.text
-      break
-    }
-  }
-
-  const cleaned = jsonText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim()
-  return JSON.parse(cleaned) as BriefingContent
+  const rawText = formatResponse.content.find((b) => b.type === "text")?.text ?? ""
+  const cleaned = rawText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim()
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
+  return JSON.parse(jsonMatch ? jsonMatch[0] : cleaned) as BriefingContent
 }
 
 export async function generateTalkingPoints(
@@ -70,7 +86,7 @@ export async function generateTalkingPoints(
   summary: string,
   url: string
 ): Promise<TalkingPoint[]> {
-  const prompt = `You are a financial educator for the Hawks & Doves intern morning meeting. Generate structured talking points for this article using our framework.
+  const prompt = `You are a financial educator. Generate structured talking points for this article using our framework.
 
 Article title: ${title}
 Summary: ${summary}
@@ -91,7 +107,7 @@ Each content field: 2-4 sentences. Enough to speak to in a morning meeting, shor
 Return ONLY valid JSON, no markdown, no explanation.`
 
   const response = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: "claude-sonnet-4-6",
     max_tokens: 2048,
     messages: [{ role: "user", content: prompt }],
   })

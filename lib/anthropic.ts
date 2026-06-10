@@ -92,7 +92,7 @@ export async function generateTalkingPoints(
   summary: string,
   url: string
 ): Promise<TalkingPoint[]> {
-  const prompt = `You are a financial educator. Generate structured talking points for this article using our framework.
+  const prompt = `You are a financial educator. Generate structured talking points for this article using the following framework.
 
 Article title: ${title}
 Summary: ${summary}

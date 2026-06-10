@@ -1,36 +1,142 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Morning Minute
 
-## Getting Started
+A daily financial morning briefing app. Every user opens the same URL and sees the same content — no login required. The briefing is fetched automatically each weekday morning, cached in a database, and served instantly on page load.
 
-First, run the development server:
+**Created by [Wilson Goins](https://github.com/wilsonfgoins)**
+
+---
+
+## What It Does
+
+At 7:00am ET every weekday, a cron job automatically:
+1. Fetches live prices for 19 market instruments via Yahoo Finance
+2. Uses Claude (Anthropic) with web search to pull the top 7–10 financial headlines from major outlets, identify today's macro events, and write an overnight market narrative
+3. Caches everything in Supabase — zero AI or market-data calls on page load
+
+Users can then click any headline to generate structured talking points. Talking points are cached on first generation and served instantly on repeat views. The app retains the last 5 working days of briefings for historical reference.
+
+---
+
+## News Sources
+
+Headlines are sourced from the following publications via Anthropic's web search tool. Claude selects the 7–10 most market-moving stories across all sources each morning:
+
+| Source | Type |
+|---|---|
+| Reuters | Free |
+| AP (Associated Press) | Free |
+| CNBC | Free |
+| Yahoo Finance | Free |
+| Financial Times | Paid (paywalled) |
+| Bloomberg | Paid (paywalled) |
+| Wall Street Journal | Paid (paywalled) |
+| Barron's | Paid (paywalled) |
+
+Paywalled articles are marked with a `$` badge in the UI. Talking points for these are generated from the headline and summary only, since the full article text is not accessible.
+
+---
+
+## Market Data
+
+Prices and moves for all 19 instruments are fetched via **yahoo-finance2** (open source, no API key required):
+
+| Asset Class | Instruments |
+|---|---|
+| US Equities | S&P 500, Nasdaq 100 |
+| European Equities | EURO STOXX 50, STOXX 600, DAX, FTSE 100 |
+| Asian Equities | Nikkei 225, Shanghai Composite, Nifty 50 |
+| Volatility | VIX, VSTOXX |
+| Government Bonds | US 10yr Treasury, German 10yr Bund, Japan 10yr JGB |
+| FX | EUR/USD, GBP/USD |
+| Commodities | Gold (spot), WTI Crude, Brent Crude |
+
+---
+
+## Tech Stack
+
+| Layer | Tool |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Database | Supabase (Postgres + RLS) |
+| Hosting & Cron | Vercel |
+| Market Data | yahoo-finance2 |
+| AI — News Search | Anthropic `claude-sonnet-4-6` + `web_search_20250305` |
+| AI — JSON Format | Anthropic `claude-haiku-4-5` |
+| AI — Talking Points | Anthropic `claude-sonnet-4-6` |
+| Rate Limiting | Upstash Redis + `@upstash/ratelimit` |
+| Styling | Tailwind CSS v4 |
+
+---
+
+## Local Development
 
 ```bash
+# Install dependencies
+npm install
+
+# Start dev server (auto-clears .next cache on each start)
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To manually trigger the briefing fetch locally:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+curl -X POST http://localhost:3000/api/cron/fetch-briefing \
+  -H "x-cron-secret: YOUR_CRON_SECRET"
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Environment Variables
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Copy `.env.local.example` to `.env.local` and fill in all values:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+ANTHROPIC_API_KEY=
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
+CRON_SECRET=
+```
 
-## Deploy on Vercel
+| Variable | Where to get it |
+|---|---|
+| `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project settings → API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase project settings → API |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase project settings → API |
+| `UPSTASH_REDIS_REST_URL` | [console.upstash.com](https://console.upstash.com) |
+| `UPSTASH_REDIS_REST_TOKEN` | [console.upstash.com](https://console.upstash.com) |
+| `CRON_SECRET` | Any long random string — used to protect cron endpoints |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deployment
+
+Deploy to Vercel. Set all environment variables in the Vercel project settings. Cron jobs are defined in `vercel.json` and run automatically:
+
+| Job | Schedule | Purpose |
+|---|---|---|
+| `/api/cron/fetch-briefing` | 7:00am ET (Mon–Fri) | Main briefing fetch |
+| `/api/cron/watchdog` | 7:45am ET (Mon–Fri) | Re-triggers fetch if main job failed |
+
+Monitor cron health under **Vercel → Settings → Cron Jobs**, and query the `cron_logs` table in Supabase for detailed run history.
+
+---
+
+## Documentation
+
+- [Architecture](docs/architecture.md) — data flow, pipeline, retry logic
+- [Database Schema](docs/database-schema.md) — all tables and columns
+- [API Routes](docs/api-routes.md) — every endpoint, auth, and rate limits
+- [Talking Points Framework](docs/talking-points-framework.md) — framework detail
+
+---
+
+## License
+
+Public.

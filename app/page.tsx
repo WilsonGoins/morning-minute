@@ -7,7 +7,6 @@ export const dynamic = "force-dynamic"
 
 async function getBriefings(): Promise<Record<string, DailyBriefing>> {
   const today = new Date()
-  today.setHours(0, 0, 0, 0)
   const todayStr = toDateString(today)
   const pastDays = getLastNWorkingDays(5, today)
   const allDates = [todayStr, ...pastDays.map(toDateString)]
@@ -28,9 +27,7 @@ async function getBriefings(): Promise<Record<string, DailyBriefing>> {
 }
 
 export default async function HomePage() {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const todayDate = toDateString(today)
+  const todayDate = toDateString(new Date())
   const briefings = await getBriefings()
   return <BriefingClient briefings={briefings} todayDate={todayDate} />
 }

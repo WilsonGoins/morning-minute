@@ -35,7 +35,7 @@ async function runPipeline(date: string, db: ReturnType<typeof getServiceClient>
   await db.from("article_talking_points").delete().lt("briefing_date", cutoffDate)
 }
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
   if (!verifyCronSecret(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }

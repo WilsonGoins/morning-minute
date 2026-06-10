@@ -10,7 +10,7 @@ function verifyCronSecret(req: NextRequest): boolean {
   return secret === process.env.CRON_SECRET
 }
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
   if (!verifyCronSecret(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
@@ -36,10 +36,9 @@ export async function POST(req: NextRequest) {
   // Trigger the primary pipeline
   const origin = req.nextUrl.origin
   const res = await fetch(`${origin}/api/cron/fetch-briefing`, {
-    method: "POST",
+    method: "GET",
     headers: {
       "x-cron-secret": process.env.CRON_SECRET!,
-      "Content-Type": "application/json",
     },
   })
 

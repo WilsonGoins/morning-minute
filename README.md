@@ -83,7 +83,7 @@ Open [http://localhost:3000](http://localhost:3000).
 To manually trigger the briefing fetch locally:
 
 ```bash
-curl -X POST http://localhost:3000/api/cron/fetch-briefing \
+curl http://localhost:3000/api/cron/fetch-briefing \
   -H "x-cron-secret: YOUR_CRON_SECRET"
 ```
 

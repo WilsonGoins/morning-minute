@@ -11,12 +11,17 @@ interface Props {
 
 function formatTimestamp(isoString: string): string {
   const date = new Date(isoString)
-  return date.toLocaleTimeString("en-US", {
+  const time = date.toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
     timeZone: "America/New_York",
-  }) + " EST"
+  })
+  const day = date.toLocaleDateString("en-US", {
+    weekday: "long",
+    timeZone: "America/New_York",
+  })
+  return `${time} ET · ${day}`
 }
 
 function formatFullDate(dateStr: string): string {
@@ -46,7 +51,7 @@ export default function PageHeader({ createdAt, selectedDate, onSelectDate, isPa
               {formatFullDate(selectedDate)}
             </p>
             <p className="text-[11px] mt-0.5" style={{ color: "var(--wf-ink-3)" }}>
-              Data as of {formatTimestamp(createdAt)} · served from cache, not live
+              Data as of {formatTimestamp(createdAt)}
             </p>
           </div>
           <DateNav selectedDate={selectedDate} onSelectDate={onSelectDate} />
@@ -57,7 +62,7 @@ export default function PageHeader({ createdAt, selectedDate, onSelectDate, isPa
             className="mt-2 rounded-lg px-3 py-2 text-[12px] font-medium"
             style={{ background: "var(--wf-fill-2)", color: "var(--wf-ink-2)", border: "1px solid var(--wf-line)" }}
           >
-            🔒 Viewing a past day — headlines &amp; claims are read-only
+            🔒 Viewing a past day — headlines are read-only
           </div>
         )}
       </div>

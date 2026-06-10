@@ -113,7 +113,7 @@ function RefreshButton() {
 
   if (state === "error") {
     return (
-      <button onClick={handleRefresh} className="text-[11px]" style={{ color: "var(--wf-down)" }}>
+      <button onClick={handleRefresh} className="cursor-pointer text-[11px]" style={{ color: "var(--wf-down)" }}>
         ✕ {errMsg} — retry?
       </button>
     )
@@ -122,7 +122,7 @@ function RefreshButton() {
   return (
     <button
       onClick={handleRefresh}
-      className="text-[11px] rounded-md border px-2 py-1 transition-colors hover:bg-[#f0f0f0]"
+      className="cursor-pointer text-[11px] rounded-md border px-2 py-1 transition-colors hover:bg-[#f0f0f0]"
       style={{ borderColor: "var(--wf-line)", color: "var(--wf-ink-2)", background: "var(--wf-card)" }}
     >
       ↻ Refresh data

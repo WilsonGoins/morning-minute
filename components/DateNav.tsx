@@ -49,7 +49,7 @@ export default function DateNav({ selectedDate, onSelectDate }: DateNavProps) {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold"
+        className="cursor-pointer flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold"
         style={{ borderColor: "var(--wf-line)", background: "var(--wf-card)", color: "var(--wf-ink)" }}
       >
         {formatPill(selectedDayObj)}
@@ -73,7 +73,7 @@ export default function DateNav({ selectedDate, onSelectDate }: DateNavProps) {
               <button
                 key={ds}
                 onClick={() => { onSelectDate(ds); setOpen(false) }}
-                className="flex w-full items-center justify-between px-4 py-2.5 text-sm hover:bg-[#f0f0f0] transition-colors"
+                className="cursor-pointer flex w-full items-center justify-between px-4 py-2.5 text-sm hover:bg-[#f0f0f0] transition-colors"
                 style={{
                   color: isSelected ? "var(--wf-ink)" : "var(--wf-ink-2)",
                   fontWeight: isSelected ? 600 : 400,

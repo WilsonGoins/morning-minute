@@ -34,10 +34,10 @@ IMPORTANT: Only include a headline if you have the full direct URL to that speci
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const searchResponse = await client.messages.create({
-    model: "claude-sonnet-4-6",
+    model: "claude-haiku-4-5",
     max_tokens: 4096,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 7 } as any],
+    tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 5 } as any],
     messages: [{ role: "user", content: searchPrompt }],
   })
 

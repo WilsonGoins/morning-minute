@@ -17,7 +17,8 @@
       "Bash(bash)",
       "Bash(~/.nvm/versions/node/v20.20.2/bin/node --version)",
       "Bash(~/.nvm/versions/node/v20.20.2/bin/npm --version)",
-      "Bash(cp *)"
+      "Bash(cp *)",
+      "Skill(claude-api)"
     ]
   }
 }

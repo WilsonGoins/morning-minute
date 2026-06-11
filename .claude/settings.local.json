@@ -18,7 +18,9 @@
       "Bash(~/.nvm/versions/node/v20.20.2/bin/node --version)",
       "Bash(~/.nvm/versions/node/v20.20.2/bin/npm --version)",
       "Bash(cp *)",
-      "Skill(claude-api)"
+      "Skill(claude-api)",
+      "WebFetch(domain:www.anthropic.com)",
+      "WebFetch(domain:claude.ai)"
     ]
   }
 }

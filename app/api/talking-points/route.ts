@@ -8,19 +8,6 @@ export const runtime = "nodejs"
 export const maxDuration = 60
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "127.0.0.1"
-  const { success, remaining } = await checkRateLimit(ip)
-
-  if (!success) {
-    return NextResponse.json(
-      {
-        error:
-          "You've generated a lot of talking points this hour — try again shortly.",
-      },
-      { status: 429, headers: { "X-RateLimit-Remaining": String(remaining) } }
-    )
-  }
-
   const body = await req.json()
   const { title, summary, url, briefing_date } = body as {
     title: string
@@ -36,7 +23,8 @@ export async function POST(req: NextRequest) {
   const urlHash = hashUrl(url)
   const db = getServiceClient()
 
-  // Cache check
+  // Cache check FIRST. A cache hit is free (no Anthropic call), so it must not
+  // consume a rate-limit token — only actual generations should count.
   const { data: cached } = await db
     .from("article_talking_points")
     .select("talking_points, claim_count")
@@ -46,6 +34,25 @@ export async function POST(req: NextRequest) {
 
   if (cached) {
     return NextResponse.json({ talking_points: cached.talking_points, cached: true })
+  }
+
+  // Rate-limit only the (billed) generation path. Key on Vercel's trusted client
+  // IP — the leftmost x-forwarded-for entry is client-supplied and spoofable,
+  // which would let anyone bypass the cap and run up Anthropic cost.
+  const ip =
+    req.headers.get("x-real-ip") ??
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    "127.0.0.1"
+  const { success, remaining } = await checkRateLimit(ip)
+
+  if (!success) {
+    return NextResponse.json(
+      {
+        error:
+          "You've generated a lot of talking points this hour — try again shortly.",
+      },
+      { status: 429, headers: { "X-RateLimit-Remaining": String(remaining) } }
+    )
   }
 
   // Generate fresh

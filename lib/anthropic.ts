@@ -75,16 +75,30 @@ Rules:
 News summary to convert:
 ${searchText}`
 
-  const formatResponse = await client.messages.create({
-    model: "claude-haiku-4-5",
-    max_tokens: 4096,
-    messages: [{ role: "user", content: formatPrompt }],
-  })
+  // Step 1's web search already ran (expensive). Only the cheap Haiku formatter
+  // is retried here — if it returns malformed JSON, we re-run just this call
+  // (~$0.01) rather than throwing and re-triggering the whole web search.
+  let lastErr: unknown
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const formatResponse = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 4096,
+      messages: [{ role: "user", content: formatPrompt }],
+    })
 
-  const rawText = formatResponse.content.find((b) => b.type === "text")?.text ?? ""
-  const cleaned = rawText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim()
-  const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
-  return JSON.parse(jsonMatch ? jsonMatch[0] : cleaned) as BriefingContent
+    const rawText = formatResponse.content.find((b) => b.type === "text")?.text ?? ""
+    const cleaned = rawText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim()
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
+    try {
+      return JSON.parse(jsonMatch ? jsonMatch[0] : cleaned) as BriefingContent
+    } catch (e) {
+      lastErr = e
+    }
+  }
+
+  throw new Error(
+    `Failed to parse briefing JSON after 3 formatter attempts: ${lastErr instanceof Error ? lastErr.message : String(lastErr)}`
+  )
 }
 
 export async function generateTalkingPoints(
@@ -112,13 +126,27 @@ Return ONLY a JSON array with exactly these 7 items (in this order):
 Each content field: 2-4 sentences. Enough to speak to in a morning meeting, short enough to read in 30 seconds.
 Return ONLY valid JSON, no markdown, no explanation.`
 
-  const response = await client.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 2048,
-    messages: [{ role: "user", content: prompt }],
-  })
+  // Retry on unparseable JSON. Extract the array body first so a stray preamble
+  // doesn't fail the parse — and so a one-off bad format doesn't waste the call.
+  let lastErr: unknown
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const response = await client.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 2048,
+      messages: [{ role: "user", content: prompt }],
+    })
 
-  const text = response.content.find((b) => b.type === "text")?.text ?? "[]"
-  const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim()
-  return JSON.parse(cleaned) as TalkingPoint[]
+    const text = response.content.find((b) => b.type === "text")?.text ?? ""
+    const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim()
+    const arrayMatch = cleaned.match(/\[[\s\S]*\]/)
+    try {
+      return JSON.parse(arrayMatch ? arrayMatch[0] : cleaned) as TalkingPoint[]
+    } catch (e) {
+      lastErr = e
+    }
+  }
+
+  throw new Error(
+    `Failed to parse talking points JSON after 3 attempts: ${lastErr instanceof Error ? lastErr.message : String(lastErr)}`
+  )
 }

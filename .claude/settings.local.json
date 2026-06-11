@@ -20,7 +20,8 @@
       "Bash(cp *)",
       "Skill(claude-api)",
       "WebFetch(domain:www.anthropic.com)",
-      "WebFetch(domain:claude.ai)"
+      "WebFetch(domain:claude.ai)",
+      "Bash(npx tsc *)"
     ]
   }
 }

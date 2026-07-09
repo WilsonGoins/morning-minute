@@ -12,7 +12,7 @@ One row per calendar day. Written by the cron job, read by the page.
 |---|---|---|
 | `id` | `uuid` | Primary key, default `gen_random_uuid()` |
 | `date` | `date` | Unique. One row per calendar day (Eastern Time). |
-| `market_data` | `jsonb` | Array of `MarketTicker` objects for all 19 instruments |
+| `market_data` | `jsonb` | Array of `MarketTicker` objects for all 21 instruments |
 | `headlines` | `jsonb` | Array of `Headline` objects (7–10 per day) |
 | `macro_events` | `jsonb` | Array of `{ name, time }` for today's scheduled events |
 | `overnight_summary` | `text` | AI-generated 2–3 sentence pre-market narrative |

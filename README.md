@@ -1,6 +1,6 @@
 # Morning Minute
 
-A daily financial morning briefing app. Every user opens the same URL and sees the same content — no login required. The briefing is fetched automatically each weekday morning, cached in a database, and served instantly on page load.
+A daily financial morning briefing app. Every user opens the same URL and sees the same content — no login required. The briefing is fetched on demand (manual trigger or the in-app refresh button), cached in a database, and served instantly on page load.
 
 **Created by [Wilson Goins](https://github.com/wilsonfgoins)**
 
@@ -8,8 +8,8 @@ A daily financial morning briefing app. Every user opens the same URL and sees t
 
 ## What It Does
 
-At 7:00am ET every weekday, a cron job automatically:
-1. Fetches live prices for 19 market instruments via Yahoo Finance
+When the briefing is triggered (manually via the cron endpoint, or by the in-app refresh button), the pipeline:
+1. Fetches live prices for 21 market instruments via Yahoo Finance
 2. Uses Claude (Anthropic) with web search to pull the top 7–10 financial headlines from major outlets, identify today's macro events, and write an overnight market narrative
 3. Caches everything in Supabase — zero AI or market-data calls on page load
 
@@ -38,7 +38,7 @@ Paywalled articles are marked with a `$` badge in the UI. Talking points for the
 
 ## Market Data
 
-Prices and moves for all 19 instruments are fetched via **yahoo-finance2** (open source, no API key required):
+Prices and moves for all 21 instruments are fetched via **yahoo-finance2** (open source, no API key required):
 
 | Asset Class | Instruments |
 |---|---|
@@ -46,7 +46,7 @@ Prices and moves for all 19 instruments are fetched via **yahoo-finance2** (open
 | European Equities | EURO STOXX 50, STOXX 600, DAX, FTSE 100 |
 | Asian Equities | Nikkei 225, Shanghai Composite, Nifty 50 |
 | Volatility | VIX, VSTOXX |
-| Government Bonds | US 10yr Treasury, German 10yr Bund, Japan 10yr JGB |
+| Government Bonds | US 2yr Treasury, US 10yr Treasury, US 30yr Treasury, German 10yr Bund, Japan 10yr JGB |
 | FX | EUR/USD, GBP/USD |
 | Commodities | Gold (spot), WTI Crude, Brent Crude |
 

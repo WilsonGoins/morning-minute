@@ -3,7 +3,7 @@ import { fetchMarketData } from "@/lib/market-data"
 
 export const runtime = "nodejs"
 
-// Protected diagnostic endpoint — shows processed market data for all 19 symbols.
+// Protected diagnostic endpoint — shows processed market data for all 21 symbols.
 // Usage:
 //   curl http://localhost:3000/api/debug/market-data \
 //     -H "x-cron-secret: YOUR_CRON_SECRET"

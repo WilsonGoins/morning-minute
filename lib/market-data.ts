@@ -2,7 +2,7 @@ import YahooFinance from "yahoo-finance2"
 const yahooFinance = new YahooFinance()
 import type { MarketTicker } from "@/types"
 
-// Yahoo Finance symbols for all 19 instruments.
+// Yahoo Finance symbols for all 21 instruments.
 // Bond yields (unit="bps"): Yahoo returns the yield as a plain percentage
 // (e.g. 4.32 means 4.32%). Day-over-day move is (current − prev) × 100 bps.
 const TICKERS: { symbol: string; label: string; unit: "pct" | "bps"; subLabel?: string }[] = [
@@ -17,7 +17,9 @@ const TICKERS: { symbol: string; label: string; unit: "pct" | "bps"; subLabel?: 
   { symbol: "^NSEI",     label: "Nifty 50",            unit: "pct" },
   { symbol: "^VIX",      label: "VIX",                 unit: "pct" },
   { symbol: "^V2TX",     label: "VSTOXX",              unit: "pct" },
+  { symbol: "2YY=F",     label: "US 2yr Treasury",     unit: "bps", subLabel: "yield" },
   { symbol: "^TNX",      label: "US 10yr Treasury",    unit: "bps", subLabel: "yield" },
+  { symbol: "^TYX",      label: "US 30yr Treasury",    unit: "bps", subLabel: "yield" },
   { symbol: "^BUND",     label: "German 10yr (Bund)",  unit: "bps" },
   { symbol: "^JGB",      label: "Japan 10yr (JGB)",    unit: "bps" },
   { symbol: "EURUSD=X",  label: "EUR / USD",           unit: "pct" },

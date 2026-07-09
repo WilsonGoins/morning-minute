@@ -2,15 +2,15 @@
 
 ## Overview
 
-Morning Minute is a read-heavy app with a single expensive write operation per day. All AI and market-data work happens in a background cron job. Page loads are pure database reads.
+Morning Minute is a read-heavy app with a single expensive write operation per briefing. All AI and market-data work happens in an on-demand fetch (there is no scheduled cron); the briefing is triggered manually via the cron endpoint or the in-app refresh button. Page loads are pure database reads.
 
 ```
-[Cron: 7:00am ET, Mon–Fri]
+[On-demand trigger: manual curl of the cron endpoint, or in-app refresh button]
         |
         ▼
 /api/cron/fetch-briefing
         |
-        ├─ yahoo-finance2 → prices + moves for 19 tickers
+        ├─ yahoo-finance2 → prices + moves for 21 tickers
         |
         ├─ Anthropic claude-sonnet-4-6 + web_search_20250305
         |    └─ 7–10 headlines, macro events, overnight narrative
@@ -36,7 +36,7 @@ Morning Minute is a read-heavy app with a single expensive write operation per d
 
 ### Step 1 — Market Data
 
-`lib/market-data.ts` calls **yahoo-finance2** for all 19 symbols. Each ticker is fetched with `quoteSummary()`, pulling `price` and `summaryDetail` modules. Day-over-day moves are computed as percentage change (equities, FX, commodities) or basis point change (bonds).
+`lib/market-data.ts` calls **yahoo-finance2** for all 21 symbols. Each ticker is fetched with `quoteSummary()`, pulling `price` and `summaryDetail` modules. Day-over-day moves are computed as percentage change (equities, FX, commodities) or basis point change (bonds).
 
 ### Step 2 — News Search (Anthropic, two-step)
 

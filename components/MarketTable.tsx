@@ -18,7 +18,7 @@ const GROUPS = [
   {
     label: "Gov Bonds",
     unit: "bps move",
-    tickers: ["US 10yr Treasury", "German 10yr (Bund)", "Japan 10yr (JGB)"],
+    tickers: ["US 2yr Treasury", "US 10yr Treasury", "US 30yr Treasury", "German 10yr (Bund)", "Japan 10yr (JGB)"],
     subgroups: [],
   },
   {
@@ -29,7 +29,7 @@ const GROUPS = [
   },
 ]
 
-const COMPACT_TICKERS = ["S&P 500", "Nasdaq 100", "EURO STOXX 50", "STOXX 600", "DAX", "FTSE 100", "Nikkei 225", "Shanghai Comp.", "Nifty 50", "VIX", "VSTOXX", "US 10yr Treasury", "German 10yr (Bund)", "Japan 10yr (JGB)", "EUR / USD", "GBP / USD", "Gold", "WTI Crude", "Brent Crude"]
+const COMPACT_TICKERS = ["S&P 500", "Nasdaq 100", "EURO STOXX 50", "STOXX 600", "DAX", "FTSE 100", "Nikkei 225", "Shanghai Comp.", "Nifty 50", "VIX", "VSTOXX", "US 2yr Treasury", "US 10yr Treasury", "US 30yr Treasury", "German 10yr (Bund)", "Japan 10yr (JGB)", "EUR / USD", "GBP / USD", "Gold", "WTI Crude", "Brent Crude"]
 
 interface Props {
   market_data: MarketTicker[]
@@ -90,7 +90,7 @@ export default function MarketTable({ market_data, macro_events, compact = false
         <span className="section-title" style={{ color: "var(--wf-ink)" }}>Quick Daily Check</span>
         <span className="eyebrow">— Market Data</span>
         {!compact && (
-          <span className="ml-auto eyebrow">19 instruments</span>
+          <span className="ml-auto eyebrow">21 instruments</span>
         )}
       </div>
 
@@ -130,7 +130,7 @@ export default function MarketTable({ market_data, macro_events, compact = false
             ) : (
               groupTickers.map((label) => {
                 const t = byLabel[label]
-                const subLabel = label === "US 10yr Treasury" ? "yield" : label === "Gold" ? "spot" : undefined
+                const subLabel = label.startsWith("US ") && label.endsWith("Treasury") ? "yield" : label === "Gold" ? "spot" : undefined
                 return <TickerRow key={label} ticker={t} subLabel={subLabel} />
               })
             )}

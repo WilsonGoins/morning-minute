@@ -73,7 +73,7 @@ Fetches or generates talking points for a headline. Checks cache first; calls An
 
 ## `GET /api/debug/market-data`
 
-Diagnostic endpoint — returns the processed market data for all 19 symbols directly from Yahoo Finance without writing to the database.
+Diagnostic endpoint — returns the processed market data for all 21 symbols directly from Yahoo Finance without writing to the database.
 
 **Auth:** Same `CRON_SECRET` check.
 

@@ -25,8 +25,11 @@
 *.pem
 *~
 
-# design and project spec reference 
+# design and project spec reference
 claude-reference/
+
+# per-machine Claude Code settings (personal, not shared)
+.claude/settings.local.json
 
 # debug
 npm-debug.log*

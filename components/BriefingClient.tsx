@@ -98,7 +98,7 @@ export default function BriefingClient({ briefings, todayDate }: Props) {
             <p className="text-[13px]" style={{ color: "var(--wf-ink-3)" }}>
               {isPastDay
                 ? "No briefing available for this date."
-                : "Today's briefing hasn't been generated yet. Check back after 6:00am EST."}
+                : "Today's briefing hasn't been generated yet. Use the refresh button to generate it."}
             </p>
           </main>
         </>

@@ -78,7 +78,7 @@ Append-only audit log. Written after every cron run — both success and failure
 | Column | Type | Notes |
 |---|---|---|
 | `id` | `uuid` | Primary key |
-| `job_name` | `text` | `"fetch-briefing"` or `"watchdog"` |
+| `job_name` | `text` | `"fetch-briefing"` |
 | `status` | `text` | `"success"` or `"error"` |
 | `error_message` | `text` | Null on success; error detail on failure |
 | `ran_at` | `timestamptz` | Default `now()` |

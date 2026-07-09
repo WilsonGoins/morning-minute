@@ -24,26 +24,7 @@ The main daily pipeline. Fetches market data, generates the AI briefing, and wri
 
 **Retry logic:** Up to 3 attempts. Waits 10s after attempt 1, 30s after attempt 2. Logs final outcome to `cron_logs`.
 
-**Triggered by:** Vercel Cron at `0 11 * * 1-5` (7:00am ET, Mon–Fri), or manually via curl.
-
----
-
-## `POST /api/cron/watchdog`
-
-Checks if today's briefing exists. Re-triggers `fetch-briefing` if it does not.
-
-**Auth:** Same `CRON_SECRET` check as above.
-
-**Runtime:** `nodejs`, `maxDuration: 60`
-
-**Response:**
-```json
-{ "ok": true, "action": "none" }
-// or
-{ "ok": true, "action": "triggered", "result": { ... } }
-```
-
-**Triggered by:** Vercel Cron at `45 11 * * 1-5` (7:45am ET, Mon–Fri).
+**Triggered by:** Manually via curl (with the `CRON_SECRET` header), or the in-app refresh button (`/api/refresh-briefing`). No scheduled cron.
 
 ---
 
@@ -109,15 +90,4 @@ Diagnostic endpoint — returns the processed market data for all 19 symbols dir
 
 ## Vercel Cron Configuration
 
-Defined in `vercel.json`:
-
-```json
-{
-  "crons": [
-    { "path": "/api/cron/fetch-briefing", "schedule": "0 11 * * 1-5" },
-    { "path": "/api/cron/watchdog",       "schedule": "45 11 * * 1-5" }
-  ]
-}
-```
-
-Vercel sends a `POST` request with an `Authorization: Bearer <CRON_SECRET>` header. Both routes accept this format as an alternative to `x-cron-secret`.
+There are no scheduled crons. `vercel.json` contains no `crons` array — briefings are fetched on demand only. `/api/cron/fetch-briefing` still accepts an `Authorization: Bearer <CRON_SECRET>` header (or `x-cron-secret`) for manual triggering.

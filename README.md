@@ -117,14 +117,11 @@ CRON_SECRET=
 
 ## Deployment
 
-Deploy to Vercel. Set all environment variables in the Vercel project settings. Cron jobs are defined in `vercel.json` and run automatically:
+Deploy to Vercel. Set all environment variables in the Vercel project settings.
 
-| Job | Schedule | Purpose |
-|---|---|---|
-| `/api/cron/fetch-briefing` | 7:00am ET (Mon–Fri) | Main briefing fetch |
-| `/api/cron/watchdog` | 7:45am ET (Mon–Fri) | Re-triggers fetch if main job failed |
+There are no scheduled cron jobs — briefings are fetched on demand. `/api/cron/fetch-briefing` can be triggered manually (with the `CRON_SECRET` header), and users can trigger a refresh from the in-app retry button (`/api/refresh-briefing`, 4-hour cooldown).
 
-Monitor cron health under **Vercel → Settings → Cron Jobs**, and query the `cron_logs` table in Supabase for detailed run history.
+Query the `cron_logs` table in Supabase for detailed run history.
 
 ---
 

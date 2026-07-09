@@ -21,12 +21,6 @@ Morning Minute is a read-heavy app with a single expensive write operation per d
         └─ Supabase upsert → daily_briefings
            Supabase delete → prune rows older than 5 working days
 
-[Cron: 7:45am ET, Mon–Fri]
-        |
-        ▼
-/api/cron/watchdog
-        └─ if no briefing exists for today → re-triggers fetch-briefing
-
 [User opens app]
         └─ Supabase SELECT from daily_briefings → page renders instantly
 
@@ -74,14 +68,6 @@ The fetch pipeline retries up to 3 times with exponential backoff:
 - Attempt 1 fails → wait 10 seconds
 - Attempt 2 fails → wait 30 seconds
 - Attempt 3 fails → log error to `cron_logs` and return 500
-
----
-
-## Watchdog
-
-The watchdog runs 45 minutes after the main cron. It queries Supabase for today's briefing row. If it exists, the watchdog exits silently. If it does not exist (main job failed), it POSTs to `/api/cron/fetch-briefing` internally to re-trigger the full pipeline.
-
-Both endpoints are protected by `CRON_SECRET` — they cannot be triggered without the correct header.
 
 ---
 
